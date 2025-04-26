@@ -1,1 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Analyst AI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/cpp.min.js"></script>
+    <script src="https://js.puter.com/v2/"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Code Analyst AI</h1>
+        <div class="mode-toggle">
+            <button id="codeAnalysisBtn" class="mode-btn active">Code Analysis</button>
+            <button id="chatModeBtn" class="mode-btn">AI Chat</button>
+        </div>
+    </div>
 
+    <div class="container">
+        <!-- Code Analysis Mode -->
+        <div id="codeAnalysisMode" class="mode-container active">
+            <div class="main-content">
+                <div class="input-section">
+                    <div class="card">
+                        <h3 class="section-title">Images <span class="subtitle">(Max 7)</span></h3>
+                        <div class="image-grid">
+                            <div class="image-container" id="imageContainer1" data-index="1">
+                                <span>Image 1</span>
+                            </div>
+                            <div class="image-container" id="imageContainer2" data-index="2">
+                                <span>Image 2</span>
+                            </div>
+                            <div class="image-container" id="imageContainer3" data-index="3">
+                                <span>Image 3</span>
+                            </div>
+                            <div class="image-container" id="imageContainer4" data-index="4">
+                                <span>Image 4</span>
+                            </div>
+                            <div class="image-container" id="imageContainer5" data-index="5">
+                                <span>Image 5</span>
+                            </div>
+                            <div class="image-container" id="imageContainer6" data-index="6">
+                                <span>Image 6</span>
+                            </div>
+                            <div class="image-container" id="imageContainer7" data-index="7">
+                                <span>Image 7</span>
+                            </div>
+                        </div>
+                        <div class="hint-text">Paste images with Ctrl+V</div>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="section-title">Question</h3>
+                        <div class="input-container">
+                            <input type="text" id="questionInput" placeholder="Describe your coding problem...">
+                            <div class="audio-button-container">
+                                <button id="recordButton" class="round-button" title="Record Audio">
+                                    <span class="icon">🎤</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="transcription-container" id="transcriptionContainer">
+                            <div class="transcription-header">
+                                <h4>Transcription</h4>
+                                <button id="useTranscriptionButton" class="small-button">Use</button>
+                            </div>
+                            <div id="transcriptionText"></div>
+                        </div>
+                        <div class="button-container">
+                            <button id="sendButton">Analyze</button>
+                            <button id="clearButton">Clear All</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="section-title">Settings</h3>
+                        <div class="settings-grid">
+                            <div class="setting-item">
+                                <label for="modelSelect">AI Model:</label>
+                                <select id="modelSelect">
+                                    <option value="default">Default (GPT-4o)</option>
+                                    <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
+                                    <option value="claude-3-7-sonnet">Claude 3.7 Sonnet</option>
+                                </select>
+                            </div>
+                            <div class="setting-item">
+                                <label for="streamingCheckbox">Streaming:</label>
+                                <div class="toggle-container">
+                                    <input type="checkbox" id="streamingCheckbox" class="toggle-checkbox" checked>
+                                    <label for="streamingCheckbox" class="toggle-label"></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="output-section">
+                    <div class="card full-height">
+                        <div class="result-header">
+                            <h3 class="section-title">Analysis Results</h3>
+                            <div class="tab-controls" id="tabControls"></div>
+                        </div>
+                        
+                        <div class="loading-container" id="loadingIndicator">
+                            <div class="loader"></div>
+                            <span>Analyzing code...</span>
+                        </div>
+                        
+                        <div class="result-content" id="responseArea"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chat Mode -->
+        <div id="chatMode" class="mode-container">
+            <div class="chat-container">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="chat-message system">
+                        <div class="message-content">
+                            <p>Hello! I'm your AI assistant. Ask me anything about coding, algorithms, or development.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-input-container">
+                    <div class="input-with-mic">
+                        <input type="text" id="chatInput" placeholder="Type your message here...">
+                        <button id="chatMicButton" class="round-button small" title="Record Audio for Chat">
+                            <span class="icon">🎤</span>
+                        </button>
+                    </div>
+                    <button id="sendChatButton">Send</button>
+                </div>
+                <div class="chat-settings">
+                    <div class="setting-item">
+                        <label for="chatModelSelect">Chat Model:</label>
+                        <select id="chatModelSelect">
+                            <option value="default">Default (GPT-4o)</option>
+                            <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
+                            <option value="claude-3-7-sonnet">Claude 3.7 Sonnet</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
