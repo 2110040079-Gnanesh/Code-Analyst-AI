@@ -1263,3 +1263,162 @@ body.meeting-mode {
         transform: scale(1);
     }
 }
+
+/* Standard Mode Styles */
+.standard-mode .meeting-layout {
+    grid-template-columns: 1fr 1fr;
+    /* Equal columns for transcription and AI response */
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.standard-mode .meeting-layout.standard-layout {
+    margin-top: 20px;
+}
+
+.standard-mode .panel {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    padding: 0;
+}
+
+.standard-mode .panel h2 {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 12px 15px;
+    margin: 0;
+    font-size: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.standard-mode .panel h2 i {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.standard-mode .panel h2 i:hover {
+    transform: scale(1.2);
+}
+
+.standard-mode .panel-content {
+    padding: 15px;
+    overflow-y: auto;
+    max-height: calc(100vh - 240px);
+    border: none;
+    background-color: white;
+}
+
+/* Improved Transcription Styling */
+.transcription-timestamp {
+    color: #777;
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+
+.transcription-content {
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.transcription-final {
+    position: relative;
+    margin-bottom: 20px;
+    padding: 10px;
+    border-left: 3px solid var(--primary-color);
+    background-color: rgba(106, 27, 154, 0.05);
+    border-radius: 4px;
+}
+
+.transcription-final:after {
+    content: "";
+    position: absolute;
+    bottom: -10px;
+    left: 20px;
+    right: 20px;
+    height: 1px;
+    background-color: #e0e0e0;
+}
+
+.transcription-final:last-child:after {
+    display: none;
+}
+
+/* Interview Answer Styling */
+.interview-answer {
+    font-size: 15px;
+    line-height: 1.6;
+    color: #333;
+}
+
+.interview-answer strong,
+.interview-answer b {
+    color: var(--primary-dark);
+    font-weight: 600;
+}
+
+.interview-answer p {
+    margin-bottom: 15px;
+}
+
+.interview-answer ul,
+.interview-answer ol {
+    padding-left: 25px;
+    margin-bottom: 15px;
+}
+
+.interview-answer li {
+    margin-bottom: 8px;
+}
+
+/* Animate typing cursor only when streaming */
+.streaming-response:not(.done):after {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 16px;
+    background-color: var(--primary-color);
+    animation: cursor-blink 1s infinite;
+    margin-left: 2px;
+    vertical-align: middle;
+}
+
+@keyframes cursor-blink {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+/* Auto-scroll containers */
+.standard-mode .panel-content {
+    scroll-behavior: smooth;
+}
+
+/* Clean, minimal UI for standard mode */
+.standard-mode .controls {
+    background-color: white;
+    padding: 15px 20px;
+    border-bottom: 1px solid #eaeaea;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+}
+
+.standard-mode .btn {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Hide image analysis in standard mode */
+.standard-mode .image-analysis-section {
+    display: none !important;
+}
