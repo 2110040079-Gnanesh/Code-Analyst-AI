@@ -96,6 +96,7 @@ document.addEventListener('DOMContentLoaded', function () {
             recordingIndicator.style.display = 'flex';
         };
 
+        // Enhance the transcript display with better formatting
         recognition.onresult = function (event) {
             let interimTranscript = '';
             let finalTranscript = '';
@@ -119,8 +120,21 @@ document.addEventListener('DOMContentLoaded', function () {
             if (finalTranscript) {
                 const finalElement = document.createElement('div');
                 finalElement.className = 'transcription-final';
-                finalElement.textContent = finalTranscript;
+
+                // Add timestamp for better separation between transcriptions
+                const timestamp = document.createElement('div');
+                timestamp.className = 'transcription-timestamp';
+                timestamp.textContent = new Date().toLocaleTimeString();
+
+                const content = document.createElement('div');
+                content.className = 'transcription-content';
+                content.textContent = finalTranscript;
+
+                finalElement.appendChild(timestamp);
+                finalElement.appendChild(content);
                 transcriptionText.appendChild(finalElement);
+
+                // Auto-scroll to the latest transcription
                 transcriptionText.scrollTop = transcriptionText.scrollHeight;
 
                 // If in meeting mode and screen sharing, auto-process periodically
@@ -334,11 +348,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (mode === 'standard') {
             document.body.classList.remove('meeting-mode');
-            imageAnalysisSection.style.display = 'block';
+            document.body.classList.add('standard-mode');
+
+            // Hide image analysis in standard mode
+            imageAnalysisSection.style.display = 'none';
+
+            // Additional UI cleanup for standard mode
+            const mainLayout = document.querySelector('.meeting-layout');
+            if (mainLayout) {
+                mainLayout.classList.add('standard-layout');
+            }
+
             stopScreenShare(); // Make sure to clean up any active meeting
         } else {
+            document.body.classList.remove('standard-mode');
             document.body.classList.add('meeting-mode');
-            imageAnalysisSection.style.display = 'block'; // Keep image analysis available
+            imageAnalysisSection.style.display = 'block'; // Show image analysis in meeting mode
             stopRecording(); // Make sure to clean up any active recording
         }
 
@@ -596,25 +621,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
         try {
             if (currentMode === 'standard') {
-                // In standard mode, use Puter AI with streaming
-                const responseContainer = document.createElement('div');
-                aiResponseText.appendChild(responseContainer);
+                // Create container for the response
+                const streamContainer = document.createElement('div');
+                streamContainer.className = 'streaming-response interview-answer';
+                aiResponseText.appendChild(streamContainer);
 
-                try {
-                    // Check if puter API is available
-                    if (typeof puter !== 'undefined' && puter.ai && puter.ai.chat) {
-                        aiStatusElement.textContent = 'Generating response with Claude AI...';
+                // Format the prompt to get interview-style responses
+                const formattedPrompt = `I am in an interview setting. Please respond to the following question or topic in a professional, clear, and concise manner. Make important points in bold. Format your response as an interview answer: ${transcription}`;
 
-                        // Stream the response from Claude AI
-                        const response = await puter.ai.chat(
-                            transcription,
+                // First try using Puter AI if available
+                if (typeof window.puter !== 'undefined' && window.puter.ai && typeof window.puter.ai.chat === 'function') {
+                    aiStatusElement.textContent = 'Generating response as if answering an interview question...';
+
+                    try {
+                        // Try streaming response with Puter AI
+                        const response = await window.puter.ai.chat(
+                            formattedPrompt,
                             { model: 'claude-3-7-sonnet', stream: true }
                         );
-
-                        // Create a container for the streaming response
-                        const streamContainer = document.createElement('div');
-                        streamContainer.className = 'streaming-response';
-                        aiResponseText.appendChild(streamContainer);
 
                         let fullResponse = '';
 
@@ -622,7 +646,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         for await (const part of response) {
                             if (part?.text) {
                                 fullResponse += part.text;
-                                // Update the UI with the markdown-parsed response so far
+                                // Update the UI with the markdown-parsed response
                                 streamContainer.innerHTML = marked.parse(fullResponse);
 
                                 // Apply syntax highlighting to code blocks if hljs is available
@@ -637,7 +661,10 @@ document.addEventListener('DOMContentLoaded', function () {
                             }
                         }
 
-                        // Save the response to session storage when complete
+                        // Mark the response as complete
+                        streamContainer.classList.add('done');
+
+                        // Save the response to session storage
                         try {
                             sessionStorage.setItem('lastAIResponse', fullResponse);
                         } catch (storageError) {
@@ -645,15 +672,51 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
 
                         aiStatusElement.className = 'ai-status success';
-                        aiStatusElement.textContent = 'Analysis complete!';
-                    } else {
-                        // Fallback to mock response if Puter API is not available
-                        showMockResponse();
+                        aiStatusElement.textContent = 'Response complete!';
+                        return; // Exit function if successful
+                    } catch (streamError) {
+                        console.warn('Streaming response failed, trying non-streaming API:', streamError);
+
+                        // Try non-streaming API as fallback
+                        try {
+                            const nonStreamResponse = await window.puter.ai.chat(
+                                formattedPrompt,
+                                { model: 'claude-3-7-sonnet', stream: false }
+                            );
+
+                            if (nonStreamResponse && nonStreamResponse.text) {
+                                streamContainer.innerHTML = marked.parse(nonStreamResponse.text);
+
+                                // Apply syntax highlighting
+                                if (typeof hljs !== 'undefined') {
+                                    streamContainer.querySelectorAll('pre code').forEach((block) => {
+                                        hljs.highlightBlock(block);
+                                    });
+                                }
+
+                                streamContainer.classList.add('done');
+                                aiStatusElement.className = 'ai-status success';
+                                aiStatusElement.textContent = 'Response complete!';
+
+                                // Save response
+                                try {
+                                    sessionStorage.setItem('lastAIResponse', nonStreamResponse.text);
+                                } catch (storageError) {
+                                    console.log('Could not store response in session storage:', storageError);
+                                }
+                                return; // Exit function if successful
+                            }
+                        } catch (nonStreamError) {
+                            console.error('Non-streaming API also failed:', nonStreamError);
+                            // We'll fall through to the mock response
+                        }
                     }
-                } catch (error) {
-                    console.error('Error with Puter AI:', error);
-                    showMockResponse();
                 }
+
+                // If we get here, either puter is not available or both API calls failed
+                // Show mock response as fallback
+                showInterviewStyleMockResponse(streamContainer);
+
             } else {
                 // For meeting mode, use the existing behavior with mock responses
                 showMockResponse();
@@ -673,7 +736,57 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Function to show mock response (used as fallback)
+    // Function to show interview-style mock response (used as fallback)
+    function showInterviewStyleMockResponse(container = null) {
+        // Simulate AI response for testing
+        const mockResponse = "That's an excellent question about artificial intelligence systems.\n\n**AI technology has evolved significantly** over the past decade, transforming from simple rule-based systems to complex neural networks capable of advanced reasoning.\n\n**Three key innovations have driven this progress**:\n\n1. **Deep learning architectures** that can process and understand unstructured data like images, audio, and natural language\n\n2. **Transfer learning techniques** that allow models to apply knowledge from one domain to another\n\n3. **Reinforcement learning methods** that enable systems to improve through trial and error\n\nThe implications for business are substantial. Companies implementing AI solutions are seeing **20-30% improvements in operational efficiency** and unlocking new capabilities that weren't previously possible.\n\nHowever, it's important to acknowledge that **ethical considerations must guide implementation**. Organizations need robust frameworks to ensure AI systems operate transparently, fairly, and with appropriate human oversight.";
+
+        // Use existing container or create new one
+        let responseContainer = container;
+        if (!responseContainer) {
+            responseContainer = document.createElement('div');
+            responseContainer.className = 'streaming-response interview-answer';
+            aiResponseText.innerHTML = '';
+            aiResponseText.appendChild(responseContainer);
+        }
+
+        // Create typed effect for mock response
+        let currentIndex = 0;
+        const typingInterval = setInterval(() => {
+            if (currentIndex < mockResponse.length) {
+                const partialResponse = mockResponse.substring(0, currentIndex + 1);
+                responseContainer.innerHTML = marked.parse(partialResponse);
+
+                // Apply syntax highlighting to code blocks if hljs is available
+                if (typeof hljs !== 'undefined') {
+                    responseContainer.querySelectorAll('pre code').forEach((block) => {
+                        hljs.highlightBlock(block);
+                    });
+                }
+
+                // Scroll to show the latest content
+                aiResponseText.scrollTop = aiResponseText.scrollHeight;
+
+                currentIndex += 3; // Type several characters at once for faster effect
+            } else {
+                clearInterval(typingInterval);
+                responseContainer.classList.add('done');
+
+                const aiStatusElement = document.getElementById('ai-status');
+                aiStatusElement.className = 'ai-status success';
+                aiStatusElement.textContent = 'Response complete!';
+
+                // Save the response to session storage
+                try {
+                    sessionStorage.setItem('lastAIResponse', mockResponse);
+                } catch (storageError) {
+                    console.log('Could not store response in session storage:', storageError);
+                }
+            }
+        }, 10);
+    }
+
+    // Function to show mock response (used for meeting mode)
     function showMockResponse() {
         // Simulate AI response for testing
         setTimeout(() => {
