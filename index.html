@@ -1,154 +1,232 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Code Analyst AI</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/python.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/cpp.min.js"></script>
-    <script src="https://js.puter.com/v2/"></script>
+    <title>Voice-to-Text Transcription App</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/vs2015.min.css">
+    <script src="https://unpkg.com/marked@4.3.0/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/lib/highlight.min.js"></script>
+    <script src="https://js.puter.com/v2/"></script>
 </head>
+
 <body>
-    <div class="header">
-        <h1>Code Analyst AI</h1>
-        <div class="mode-toggle">
-            <button id="codeAnalysisBtn" class="mode-btn active">Code Analysis</button>
-            <button id="chatModeBtn" class="mode-btn">AI Chat</button>
-        </div>
-    </div>
-
-    <div class="container">
-        <!-- Code Analysis Mode -->
-        <div id="codeAnalysisMode" class="mode-container active">
-            <div class="main-content">
-                <div class="input-section">
-                    <div class="card">
-                        <h3 class="section-title">Images <span class="subtitle">(Max 7)</span></h3>
-                        <div class="image-grid">
-                            <div class="image-container" id="imageContainer1" data-index="1">
-                                <span>Image 1</span>
-                            </div>
-                            <div class="image-container" id="imageContainer2" data-index="2">
-                                <span>Image 2</span>
-                            </div>
-                            <div class="image-container" id="imageContainer3" data-index="3">
-                                <span>Image 3</span>
-                            </div>
-                            <div class="image-container" id="imageContainer4" data-index="4">
-                                <span>Image 4</span>
-                            </div>
-                            <div class="image-container" id="imageContainer5" data-index="5">
-                                <span>Image 5</span>
-                            </div>
-                            <div class="image-container" id="imageContainer6" data-index="6">
-                                <span>Image 6</span>
-                            </div>
-                            <div class="image-container" id="imageContainer7" data-index="7">
-                                <span>Image 7</span>
-                            </div>
-                        </div>
-                        <div class="hint-text">Paste images with Ctrl+V</div>
-                    </div>
-
-                    <div class="card">
-                        <h3 class="section-title">Question</h3>
-                        <div class="input-container">
-                            <input type="text" id="questionInput" placeholder="Describe your coding problem...">
-                            <div class="audio-button-container">
-                                <button id="recordButton" class="round-button" title="Record Audio">
-                                    <span class="icon">🎤</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="transcription-container" id="transcriptionContainer">
-                            <div class="transcription-header">
-                                <h4>Transcription</h4>
-                                <button id="useTranscriptionButton" class="small-button">Use</button>
-                            </div>
-                            <div id="transcriptionText"></div>
-                        </div>
-                        <div class="button-container">
-                            <button id="sendButton">Analyze</button>
-                            <button id="clearButton">Clear All</button>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <h3 class="section-title">Settings</h3>
-                        <div class="settings-grid">
-                            <div class="setting-item">
-                                <label for="modelSelect">AI Model:</label>
-                                <select id="modelSelect">
-                                    <option value="default">Default (GPT-4o)</option>
-                                    <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
-                                    <option value="claude-3-7-sonnet">Claude 3.7 Sonnet</option>
-                                </select>
-                            </div>
-                            <div class="setting-item">
-                                <label for="streamingCheckbox">Streaming:</label>
-                                <div class="toggle-container">
-                                    <input type="checkbox" id="streamingCheckbox" class="toggle-checkbox" checked>
-                                    <label for="streamingCheckbox" class="toggle-label"></label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    <!-- Mode Selection Overlay - Added to fix missing functionality -->
+    <div id="modeSelection" class="mode-selection-overlay" style="display: none;">
+        <div class="mode-selection-container">
+            <h2>Choose Your Mode</h2>
+            <div class="mode-buttons">
+                <div id="standardModeBtn" class="mode-btn">
+                    <i class="fas fa-microphone fa-3x"></i>
+                    <span>Standard Mode</span>
+                    <p>Transcribe your voice and get AI feedback</p>
                 </div>
-
-                <div class="output-section">
-                    <div class="card full-height">
-                        <div class="result-header">
-                            <h3 class="section-title">Analysis Results</h3>
-                            <div class="tab-controls" id="tabControls"></div>
-                        </div>
-                        
-                        <div class="loading-container" id="loadingIndicator">
-                            <div class="loader"></div>
-                            <span>Analyzing code...</span>
-                        </div>
-                        
-                        <div class="result-content" id="responseArea"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Chat Mode -->
-        <div id="chatMode" class="mode-container">
-            <div class="chat-container">
-                <div class="chat-messages" id="chatMessages">
-                    <div class="chat-message system">
-                        <div class="message-content">
-                            <p>Hello! I'm your AI assistant. Ask me anything about coding, algorithms, or development.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="chat-input-container">
-                    <div class="input-with-mic">
-                        <input type="text" id="chatInput" placeholder="Type your message here...">
-                        <button id="chatMicButton" class="round-button small" title="Record Audio for Chat">
-                            <span class="icon">🎤</span>
-                        </button>
-                    </div>
-                    <button id="sendChatButton">Send</button>
-                </div>
-                <div class="chat-settings">
-                    <div class="setting-item">
-                        <label for="chatModelSelect">Chat Model:</label>
-                        <select id="chatModelSelect">
-                            <option value="default">Default (GPT-4o)</option>
-                            <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
-                            <option value="claude-3-7-sonnet">Claude 3.7 Sonnet</option>
-                        </select>
-                    </div>
+                <div id="meetingModeBtn" class="mode-btn">
+                    <i class="fas fa-users fa-3x"></i>
+                    <span>Meeting Assistant</span>
+                    <p>Record meetings and get real-time summaries</p>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="app-title">
+            <i class="fas fa-microphone"></i>
+            <h1>Voice-to-Text Transcription App</h1>
+        </div>
+        <div class="mode-indicator">
+            <span id="current-mode">Standard Mode</span>
+            <button id="switchModeButton" class="btn small-btn">Switch Mode</button>
+        </div>
+        <div class="status-bar">
+            <span class="status" id="status-message">Ready</span>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+        <button id="start-btn" class="btn primary">
+            <i class="fas fa-play"></i> Start Recording
+        </button>
+        <button id="stop-btn" class="btn danger" disabled>
+            <i class="fas fa-stop"></i> Stop Recording
+        </button>
+        <button id="clear-btn" class="btn secondary">
+            <i class="fas fa-trash"></i> Clear Transcription
+        </button>
+        <button id="screen-share-btn" class="btn secondary">
+            <i class="fas fa-desktop"></i> Share Screen
+        </button>
+        <button id="helpButton" class="btn secondary">
+            <i class="fas fa-question-circle"></i> Help
+        </button>
+        <div class="recording-indicator" id="recording-indicator">
+            <div class="recording-dot" id="recording-dot"></div>
+            <span>Recording...</span>
+        </div>
+    </div>
+
+    <!-- Meeting Layout -->
+    <div class="meeting-layout">
+        <!-- Screen sharing video will float in the top-right corner -->
+        <div class="screen-preview-floater" id="screen-preview-floater" style="display: none;">
+            <video id="screen-video" autoplay muted></video>
+        </div>
+
+        <div class="meeting-left-panel">
+            <div class="panel transcription-panel">
+                <h2>
+                    <span>Transcription Result</span>
+                    <i class="fas fa-copy" id="copy-transcription" title="Copy to clipboard"></i>
+                </h2>
+                <div class="panel-content" id="transcription-result"></div>
+            </div>
+
+            <div class="image-analysis-section">
+                <h2>Image Analysis <span>(Upload up to 7 images)</span></h2>
+
+                <div class="image-upload-container">
+                    <div class="upload-instructions">
+                        Paste images directly or drag and drop them here.
+                        We'll analyze the content and provide detailed answers.
+                    </div>
+
+                    <div class="paste-area" id="paste-area">
+                        <i class="fas fa-paste"></i> Click here to paste images from clipboard or drop images here
+                    </div>
+
+                    <div class="image-preview-container" id="image-preview-container"></div>
+
+                    <button id="analyze-images-btn" class="btn primary" disabled>
+                        <i class="fas fa-search"></i> Analyze Images
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="meeting-right-panel">
+            <div class="panel ai-response-panel">
+                <h2>
+                    <span>AI Response</span>
+                    <i class="fas fa-copy" id="copy-response" title="Copy to clipboard"></i>
+                </h2>
+                <div class="ai-status" id="ai-status" style="display: none;"></div>
+                <div class="panel-content" id="ai-response"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="help-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="close-help">&times;</span>
+            <h2>Voice-to-Text App Help</h2>
+            <div class="help-content">
+                <h3>Getting Started</h3>
+                <p>Click "Start Recording" to begin voice recognition. Speak clearly into your microphone. The
+                    transcribed text will appear in real-time in the transcription panel.</p>
+
+                <h3>Controls</h3>
+                <ul>
+                    <li><strong>Start Recording:</strong> Begin capturing audio from your microphone</li>
+                    <li><strong>Stop Recording:</strong> End the current recording session</li>
+                    <li><strong>Clear Transcription:</strong> Remove all transcribed text</li>
+                    <li><strong>Share Screen:</strong> Share your screen during recording</li>
+                </ul>
+
+                <h3>Image Analysis</h3>
+                <ul>
+                    <li>Paste up to 7 images for AI analysis</li>
+                    <li>Get detailed explanations including approach, code examples, and complexity analysis</li>
+                    <li>Perfect for technical interviews or code reviews</li>
+                </ul>
+
+                <h3>Tips for Best Results</h3>
+                <ul>
+                    <li>Use a good quality microphone in a quiet environment</li>
+                    <li>Speak clearly and at a moderate pace</li>
+                    <li>For screen sharing, ensure your screen has content visible that you want to discuss</li>
+                </ul>
+            </div>
+            <div class="form-group buttons">
+                <button id="close-help-btn" class="btn primary">Got it!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="close-settings">&times;</span>
+            <h2>Voice Recognition Settings</h2>
+            <div class="form-group">
+                <label for="language">Recognition Language</label>
+                <select id="language">
+                    <option value="en-US">English (US)</option>
+                    <option value="en-GB">English (UK)</option>
+                    <option value="es-ES">Spanish</option>
+                    <option value="fr-FR">French</option>
+                    <option value="de-DE">German</option>
+                    <option value="zh-CN">Chinese (Simplified)</option>
+                    <option value="ja-JP">Japanese</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="continuous">
+                    <input type="checkbox" id="continuous" checked>
+                    Continuous Recognition
+                </label>
+            </div>
+            <div class="form-group">
+                <label for="interim-results">
+                    <input type="checkbox" id="interim-results" checked>
+                    Show Interim Results
+                </label>
+            </div>
+            <div class="form-group">
+                <label for="saveTranscriptions">
+                    <input type="checkbox" id="saveTranscriptions" checked>
+                    Save Transcription History
+                </label>
+            </div>
+            <div class="form-group">
+                <label for="timeout">Recognition Timeout (seconds)</label>
+                <input type="number" id="timeout" min="5" max="60" value="10">
+            </div>
+            <div class="form-group">
+                <label for="energyThreshold">Energy Threshold</label>
+                <input type="range" id="energyThreshold" min="100" max="1000" value="300">
+                <span id="energyThresholdValue">300</span>
+            </div>
+            <div class="form-group">
+                <label for="useVoiceCloning">
+                    <input type="checkbox" id="useVoiceCloning">
+                    Enable Voice Cloning
+                </label>
+            </div>
+            <div class="form-group">
+                <label for="aiModel">AI Model</label>
+                <select id="aiModel">
+                    <option value="gpt-4o">GPT-4o</option>
+                    <option value="gpt-4o-mini">GPT-4o Mini</option>
+                    <option value="gpt-4.1">GPT-4.1</option>
+                    <option value="gpt-4.1-mini">GPT-4.1 Mini</option>
+                </select>
+            </div>
+            <div class="form-group buttons">
+                <button id="settings-cancel" class="btn secondary">Cancel</button>
+                <button id="settings-save" class="btn primary">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://js.puter.com/v2/"></script>
     <script src="script.js"></script>
 </body>
+
 </html>
